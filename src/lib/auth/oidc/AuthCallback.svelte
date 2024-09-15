@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { handleCallback, handleSilentCallback } from '$lib/auth/oidc/client';
+    import { handleCallback, handleSilentCallback } from './client.js';
 
     export let action = 'login';
 

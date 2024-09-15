@@ -1,7 +1,7 @@
 // oidc.ts
 import { UserManager, WebStorageStateStore, User } from "oidc-client-ts";
 import { goto } from "$app/navigation";
-import { isAuthenticated, user } from "$lib/auth/oidc/store";
+import { isAuthenticated, user } from "./store.js";
 import { browser } from "$app/environment";
 import { env } from '$env/dynamic/public';
 
@@ -123,11 +123,12 @@ async function loadUserFromStorage(): Promise<void> {
 /**
  * Helper function to execute OIDC actions with centralized error handling.
  */
-async function executeWithErrorHandling(action: () => Promise<void>) {
+async function executeWithErrorHandling<T>(action: () => Promise<T>): Promise<T | undefined> {
     try {
-        await action();
+        return await action();
     } catch (error) {
         console.error('OIDC action failed', error);
+        return undefined;
     }
 }
 
@@ -177,7 +178,7 @@ async function handleSilentCallback(): Promise<void> {
  */
 async function getUser(): Promise<User | null> {
     if (!userManager) return null;
-    return await executeWithErrorHandling(() => userManager!.getUser());
+    return await executeWithErrorHandling(() => userManager!.getUser()) || null;
 }
 
 /**
