@@ -1,3 +1,3 @@
 export { default as AuthCallback } from './auth/oidc/AuthCallback.svelte';
-export * as client from './auth/oidc/client.js';
-export * as store from './auth/oidc/store.js';
+import * as auth from './auth/oidc/client.js';
+import * as account from './auth/oidc/store.js';
