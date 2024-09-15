@@ -6,9 +6,6 @@ name: Node.js Package
 # on pus with version tag
 on:
   push:
-    branches:
-      - 'main'
-      - 'master'
     tags:
       - 'v*'
 
@@ -32,7 +29,6 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: npm run package
       - run: npm ci
       - run: npm publish --provenance --access public
         env:
