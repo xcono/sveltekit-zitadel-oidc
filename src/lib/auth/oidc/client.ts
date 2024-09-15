@@ -12,8 +12,8 @@ let userManager: UserManager | null = null;
  * This function combines the setup of OIDC configuration and retrieves the current user session
  * from local storage to restore the authentication state when the app initializes.
  */
-async function authorize(): Promise<void> {
-    if (!browser) return; // Ensure this runs only in the browser environment
+async function authorize(): Promise<User|null> {
+    if (!browser) return null; // Ensure this runs only in the browser environment
 
     const root = env.PUBLIC_URL || 'http://localhost:5173';
     const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
@@ -22,7 +22,7 @@ async function authorize(): Promise<void> {
     // Ensure environment variables are set correctly
     if (!authority || !clientID) {
         console.error("Missing required OIDC configuration. Please check environment variables.");
-        return;
+        return null;
     }
 
     // Configure the OIDC UserManager with necessary URLs and settings
@@ -91,8 +91,8 @@ function clearUserState(): void {
  * Attempts to load the user from local storage if the user has previously logged in.
  * This ensures the authentication state persists after a page refresh.
  */
-async function loadUserFromStorage(): Promise<void> {
-    if (!userManager || !browser) return;
+async function loadUserFromStorage(): Promise<User|null> {
+    if (!userManager || !browser) return null;
 
     try {
         // Get the stored user from the UserManager
@@ -101,24 +101,27 @@ async function loadUserFromStorage(): Promise<void> {
         if (!storedUser) {
             console.log('No user found in storage.');
             clearUserState();
-            return;
+            return null;
         }
 
         // Check if the token is expired
         if (isTokenExpired(storedUser.expires_at)) {
             console.log('Stored token is expired.');
             clearUserState();
-            return;
+            return null;
         }
 
         console.log('User loaded from storage and token is valid:', storedUser);
         user.set(storedUser); // Update the Svelte store with the valid user
         isAuthenticated.set(true); // Mark the user as authenticated
 
+        return storedUser; // Return the loaded user for further processing
     } catch (error) {
         console.error('Error loading user from storage:', error);
         clearUserState(); // Fallback to a cleared state if an error occurs
     }
+
+    return null; // Return null if no valid user is found
 }
 /**
  * Helper function to execute OIDC actions with centralized error handling.
