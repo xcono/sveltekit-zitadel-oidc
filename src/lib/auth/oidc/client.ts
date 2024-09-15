@@ -28,7 +28,7 @@ async function authorize(): Promise<void> {
     // Configure the OIDC UserManager with necessary URLs and settings
     const config = {
         redirect_uri: `${root}/auth/oidc/callback`,
-        post_logout_redirect_uri: root,
+        post_logout_redirect_uri: root + "/",
         silent_redirect_uri: `${root}/auth/oidc/refresh`,  // URL used for silent token renewal
         authority,
         client_id: clientID,
