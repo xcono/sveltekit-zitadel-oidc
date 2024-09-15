@@ -19,6 +19,8 @@ async function authorize(): Promise<User|null> {
     const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
     const clientID = env.PUBLIC_OIDC_CLIENT_ID || "284984992713474140";
 
+    const logoutRedirect = env.PUBLIC_OIDC_LOGOUT_URL || `${root}/`;
+
     // Ensure environment variables are set correctly
     if (!authority || !clientID) {
         console.error("Missing required OIDC configuration. Please check environment variables.");
@@ -28,7 +30,7 @@ async function authorize(): Promise<User|null> {
     // Configure the OIDC UserManager with necessary URLs and settings
     const config = {
         redirect_uri: `${root}/auth/oidc/callback`,
-        post_logout_redirect_uri: authority,
+        post_logout_redirect_uri: logoutRedirect,
         silent_redirect_uri: `${root}/auth/oidc/refresh`,  // URL used for silent token renewal
         authority,
         client_id: clientID,
