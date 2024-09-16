@@ -5,6 +5,13 @@ import { isAuthenticated, user } from "./store.js";
 import { browser } from "$app/environment";
 import { env } from '$env/dynamic/public';
 
+const root = env.PUBLIC_GUI_URL || 'http://localhost:5173';
+const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
+const clientID = env.PUBLIC_OIDC_CLIENT_ID || "284984992713474140";
+
+const loginRedirect = env.PUBLIC_OIDC_LOGIN_URL || `${root}/`;
+const logoutRedirect = env.PUBLIC_OIDC_LOGOUT_URL || `${root}/`;
+
 let userManager: UserManager | null = null;
 
 /**
@@ -15,11 +22,6 @@ let userManager: UserManager | null = null;
 async function authorize(): Promise<User|null> {
     if (!browser) return null; // Ensure this runs only in the browser environment
 
-    const root = env.PUBLIC_URL || 'http://localhost:5173';
-    const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
-    const clientID = env.PUBLIC_OIDC_CLIENT_ID || "284984992713474140";
-
-    const logoutRedirect = env.PUBLIC_OIDC_LOGOUT_URL || `${root}/`;
 
     // Ensure environment variables are set correctly
     if (!authority || !clientID) {
@@ -162,7 +164,7 @@ async function handleCallback(): Promise<void> {
     if (!userManager) return;
     await executeWithErrorHandling(async () => {
         await userManager!.signinRedirectCallback();
-        goto("/");  // Redirect to the home page after login
+        goto(loginRedirect);  // Redirect to the home page after login
     });
 }
 
@@ -174,7 +176,7 @@ async function handleSilentCallback(): Promise<void> {
     if (!userManager) return;
     await executeWithErrorHandling(async () => {
         await userManager!.signinSilentCallback();  // Handle the silent renew response
-        goto("/");  // Redirect after successful silent renew (if needed)
+        goto(loginRedirect);  // Redirect after successful silent renew (if needed).  (may be pass it to config?)
     });
 }
 
