@@ -7,7 +7,7 @@ import { env } from '$env/dynamic/public';
 
 const root = env.PUBLIC_GUI_URL || 'http://localhost:5173';
 const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
-const clientID = env.PUBLIC_OIDC_CLIENT_ID || "284984992713474140";
+const clientID = env.PUBLIC_OIDC_CLIENT_ID;
 
 const loginRedirect = env.PUBLIC_OIDC_LOGIN_URL || `${root}/`;
 const logoutRedirect = env.PUBLIC_OIDC_LOGOUT_URL || `${root}/`;
