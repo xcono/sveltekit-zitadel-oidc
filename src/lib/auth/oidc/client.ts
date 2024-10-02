@@ -1,12 +1,17 @@
 // oidc.ts
-import { UserManager, WebStorageStateStore, User } from "oidc-client-ts";
-import { goto } from "$app/navigation";
-import { isAuthenticated, user } from "./store.js";
-import { browser } from "$app/environment";
+import {
+    UserManager,
+    WebStorageStateStore,
+    User,
+    type UserManagerSettings,
+} from 'oidc-client-ts';
+import { goto } from '$app/navigation';
+import { isAuthenticated, user } from './store.js';
+import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 
 const root = env.PUBLIC_GUI_URL || 'http://localhost:5173';
-const authority = env.PUBLIC_OIDC_URL || "http://id.loc";
+const authority = env.PUBLIC_OIDC_URL || 'http://id.loc';
 const clientID = env.PUBLIC_OIDC_CLIENT_ID;
 
 const loginRedirect = env.PUBLIC_OIDC_LOGIN_URL || `${root}/`;
@@ -19,27 +24,28 @@ let userManager: UserManager | null = null;
  * This function combines the setup of OIDC configuration and retrieves the current user session
  * from local storage to restore the authentication state when the app initializes.
  */
-async function authorize(): Promise<User|null> {
+async function init(): Promise<User | null> {
     if (!browser) return null; // Ensure this runs only in the browser environment
-
 
     // Ensure environment variables are set correctly
     if (!authority || !clientID) {
-        console.error("Missing required OIDC configuration. Please check environment variables.");
+        console.error(
+            'Missing required OIDC configuration. Please check environment variables.'
+        );
         return null;
     }
 
     // Configure the OIDC UserManager with necessary URLs and settings
-    const config = {
+    const config: UserManagerSettings = {
         redirect_uri: `${root}/auth/oidc/callback`,
         post_logout_redirect_uri: logoutRedirect,
-        silent_redirect_uri: `${root}/auth/oidc/refresh`,  // URL used for silent token renewal
+        silent_redirect_uri: `${root}/auth/oidc/refresh`, // URL used for silent token renewal
         authority,
         client_id: clientID,
-        response_type: "code",  // Authorization Code Flow
-        scope: "openid profile email",
+        response_type: 'code', // Authorization Code Flow
+        scope: 'openid profile email',
         userStore: new WebStorageStateStore({ store: window.localStorage }), // Store the user in localStorage
-        automaticSilentRenew: true,  // Automatically attempt silent token renewal
+        automaticSilentRenew: true, // Automatically attempt silent token renewal
     };
 
     userManager = new UserManager(config);
@@ -47,15 +53,15 @@ async function authorize(): Promise<User|null> {
     // Listen to events when a user is loaded
     userManager.events.addUserLoaded((loadedUser: User) => {
         console.log('User loaded:', loadedUser);
-        user.set(loadedUser);  // Update the Svelte store with the loaded user
-        isAuthenticated.set(true);  // Mark the user as authenticated
+        user.set(loadedUser); // Update the Svelte store with the loaded user
+        isAuthenticated.set(true); // Mark the user as authenticated
     });
 
     // Listen to events when the user is unloaded (e.g., after logout)
     userManager.events.addUserUnloaded(() => {
         console.log('User unloaded');
-        user.set(null);  // Clear the user from the Svelte store
-        isAuthenticated.set(false);  // Mark the user as unauthenticated
+        user.set(null); // Clear the user from the Svelte store
+        isAuthenticated.set(false); // Mark the user as unauthenticated
     });
 
     // Handle errors during silent renew
@@ -66,12 +72,13 @@ async function authorize(): Promise<User|null> {
     // Handle access token expiration and trigger silent renew
     userManager.events.addAccessTokenExpired(() => {
         console.log('Access token expired, attempting silent renew');
-        silentLogin();  // Attempt to renew the token silently
+        silentLogin(); // Attempt to renew the token silently
     });
 
     // Load the user from local storage after initializing UserManager
     return await loadUserFromStorage();
 }
+
 /**
  * Checks whether the stored user’s token has expired based on the current time and the token’s expiration timestamp.
  * @param expiresAt - The token's expiration timestamp in seconds.
@@ -95,7 +102,7 @@ function clearUserState(): void {
  * Attempts to load the user from local storage if the user has previously logged in.
  * This ensures the authentication state persists after a page refresh.
  */
-async function loadUserFromStorage(): Promise<User|null> {
+async function loadUserFromStorage(): Promise<User | null> {
     if (!userManager || !browser) return null;
 
     try {
@@ -130,7 +137,9 @@ async function loadUserFromStorage(): Promise<User|null> {
 /**
  * Helper function to execute OIDC actions with centralized error handling.
  */
-async function executeWithErrorHandling<T>(action: () => Promise<T>): Promise<T | undefined> {
+async function executeWithErrorHandling<T>(
+    action: () => Promise<T>
+): Promise<T | undefined> {
     try {
         return await action();
     } catch (error) {
@@ -164,7 +173,7 @@ async function handleCallback(): Promise<void> {
     if (!userManager) return;
     await executeWithErrorHandling(async () => {
         await userManager!.signinRedirectCallback();
-        goto(loginRedirect);  // Redirect to the home page after login
+        goto(loginRedirect); // Redirect to the home page after login
     });
 }
 
@@ -175,8 +184,8 @@ async function handleCallback(): Promise<void> {
 async function handleSilentCallback(): Promise<void> {
     if (!userManager) return;
     await executeWithErrorHandling(async () => {
-        await userManager!.signinSilentCallback();  // Handle the silent renew response
-        goto(loginRedirect);  // Redirect after successful silent renew (if needed).  (may be pass it to config?)
+        await userManager!.signinSilentCallback(); // Handle the silent renew response
+        goto(loginRedirect); // Redirect after successful silent renew (if needed).  (may be pass it to config?)
     });
 }
 
@@ -185,7 +194,9 @@ async function handleSilentCallback(): Promise<void> {
  */
 async function getUser(): Promise<User | null> {
     if (!userManager) return null;
-    return await executeWithErrorHandling(() => userManager!.getUser()) || null;
+    return (
+        (await executeWithErrorHandling(() => userManager!.getUser())) || null
+    );
 }
 
 /**
@@ -197,4 +208,4 @@ async function silentLogin(): Promise<void> {
     await executeWithErrorHandling(() => userManager!.signinSilent());
 }
 
-export { authorize, login, logout, getUser, handleCallback, handleSilentCallback };
+export { init, login, logout, getUser, handleCallback, handleSilentCallback };
