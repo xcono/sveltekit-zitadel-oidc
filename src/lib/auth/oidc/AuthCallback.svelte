@@ -5,7 +5,6 @@
     export let action = 'login';
 
     onMount(() => {
-
         switch (action) {
             case 'login':
                 handleCallback();
@@ -24,4 +23,3 @@
 {:else}
     <div>Unknown action: {action}</div>
 {/if}
-
