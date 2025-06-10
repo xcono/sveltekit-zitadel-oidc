@@ -23,7 +23,7 @@
 		"!dist/**/*.spec.*"
 	],
 	"peerDependencies": {
-		"svelte": "^4.0.0"
+		"svelte": "^5.33.17"
 	},
 	"dependencies": {
 		"oidc-client-ts": "^3.0.1",
