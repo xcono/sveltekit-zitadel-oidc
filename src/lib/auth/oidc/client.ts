@@ -115,7 +115,7 @@ async function loadUserFromStorage(): Promise<User|null> {
             return null;
         }
 
-        console.log('User loaded from storage and token is valid:', storedUser);
+        console.debug('User loaded from storage and token is valid:', storedUser);
         user.set(storedUser); // Update the Svelte store with the valid user
         isAuthenticated.set(true); // Mark the user as authenticated
 
